@@ -1,54 +1,66 @@
 ---
 
-- hosts: all
+- name: Install updates
+  hosts: all
+  become: true
+  pre_tasks:
+
+    - name: Install updates (RedHat)
+      ansible.builtin.dnf:
+        update_only: true
+        update_cache: true
+      when: ansible_distribution == "RedHat"
+
+    - name: Install updated (Ubuntu)
+      ansible.builtin.apt:
+        upgrade: dist
+        update_cache: true
+      when: ansible_distribution == "Ubuntu"
+
+- name: Configure web services
+  hosts: web_servers
   become: true
   tasks:
 
-  - name: update repository index
-    apt:
-      update_cache: yes
-    when: ansible_distribution == "Ubuntu"
-  
-  - name: install apache2 package
-    apt:
-      name: apache2
-      state: latest
-    when: ansible_distribution == "Ubuntu"
+    - name: Install apache and php (Ubuntu)
+      ansible.builtin.apt:
+        name:
+          - apache2
+          - libapache2-mod-php
+        state: latest
+      when: ansible_distribution == "Ubuntu"
 
-  - name: add php support for apache2
-    apt:
-      name: libapache2-mod-php
-      state: latest
-    when: ansible_distribution == "Ubuntu"
+    - name: Install apache and php (RedHat)
+      ansible.builtin.dnf:
+        name:
+          - httpd
+          - php
+        state: latest
+      when: ansible_distribution == "RedHat"
 
-  - name: update repository index
-    dnf:
-      update_cache: yes
-    when: ansible_distribution == "RedHat"
-  
-  - name: install apache2 package
-    dnf:
-      name: httpd
-      state: latest
-    when: ansible_distribution == "RedHat"
+- name: Configure db servers
+  hosts: db_servers
+  become: true
+  tasks:
 
-  - name: add php support for apache2
-    dnf:
-      name: php
-      state: latest
-    when: ansible_distribution == "RedHat"
-  
-  - name: Add HTTP service to firewalld
-    ansible.posix.firewalld:
-      service: http
-      permanent: true
-      state: enabled
-      immediate: yes
-    when: ansible_distribution == "RedHat"
+    - name: Install mariadb package (RedHat)
+      ansible.builtin.dnf:
+        name: mariadb
+        state: latest
+      when: ansible_distribution == "RedHat"
 
-  - name: Ensure httpd service is started and enabled
-    ansible.builtin.service:
-      name: httpd
-      state: started
-      enabled: true
-    when: ansible_distribution == "RedHat"
+    - name: Install mariadb package (Ubuntu)
+      ansible.builtin.apt:
+        name: mariadb-server
+        state: latest
+      when: ansible_distribution == "Ubuntu"
+
+- name: Configure file servers
+  hosts: file_servers
+  become: true
+  tasks:
+
+    - name: Install samba package
+      ansible.builtin.package:
+        name: samba
+        state: latest
