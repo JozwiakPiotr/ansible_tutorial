@@ -6,12 +6,14 @@
   pre_tasks:
 
     - name: Install updates (RedHat)
+      tags: always
       ansible.builtin.dnf:
         update_only: true
         update_cache: true
       when: ansible_distribution == "RedHat"
 
     - name: Install updated (Ubuntu)
+      tags: always
       ansible.builtin.apt:
         upgrade: dist
         update_cache: true
@@ -23,6 +25,7 @@
   tasks:
 
     - name: Install apache and php (Ubuntu)
+      tags: apache,apache2,ubuntu
       ansible.builtin.apt:
         name:
           - apache2
@@ -31,6 +34,7 @@
       when: ansible_distribution == "Ubuntu"
 
     - name: Install apache and php (RedHat)
+      tags: apache,httpd,redhat
       ansible.builtin.dnf:
         name:
           - httpd
@@ -44,12 +48,14 @@
   tasks:
 
     - name: Install mariadb package (RedHat)
+      tags: mariadb,redhat
       ansible.builtin.dnf:
         name: mariadb
         state: latest
       when: ansible_distribution == "RedHat"
 
     - name: Install mariadb package (Ubuntu)
+      tags: mariadb,ubuntu
       ansible.builtin.apt:
         name: mariadb-server
         state: latest
@@ -61,6 +67,7 @@
   tasks:
 
     - name: Install samba package
+      tags: samba
       ansible.builtin.package:
         name: samba
         state: latest
