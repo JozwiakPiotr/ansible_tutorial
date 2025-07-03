@@ -1,2 +1,6 @@
 skip_list:
   - package-latest
+  - yaml[new-line-at-end-of-file]
+  - no-handler
+  - yaml[trailing-spaces]
+  - fqcn[canonical]

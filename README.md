@@ -1,5 +1,8 @@
 # ansible_tutorial
 
+## bootstrap
+`ansible-playbook bootstrap.yml --ask-pass --ask-become-pass -e 'ansible_user=piotr ansible_ssh_private_key_file=none'`
+
 ## komendy
 
 ```bash
@@ -10,7 +13,7 @@ ansible all -m apt -a name=tmux --become --ask-become-pass
 ansible all -m apt -a "upgrade=dist" --become --ask-become-pass
 ansible-playbook --ask-become-pass site.yml
 ansible-playbook --list-tags site.yml
-ansible-playbook ansible-playbook --tags "db,apache" --ask-become-pass site.yml
+ansible-playbook --tags "db,apache" --ask-become-pass site.yml
 ```
 
 ## TODO

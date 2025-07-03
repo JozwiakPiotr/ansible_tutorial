@@ -42,6 +42,31 @@
         state: latest
       when: ansible_distribution == "RedHat"
 
+    - name: Add homepage index.html
+      tags: apache,apache2,httpd
+      ansible.builtin.copy:
+        src: home_site.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Change e-mail address for admin # tylko na potrzeby testowania restartu usług
+      tags: apache,httpd,redhat
+      ansible.builtin.lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: '^ServerAdmin'
+        line: 'ServerAdmin somebody@somewhere.net'
+      when: ansible_distribution == "RedHat"
+      register: httpd
+
+    - name: Restart httpd service
+      tags: apache,httpd,redhat
+      ansible.builtin.systemd:
+        name: httpd
+        state: restarted
+      when: httpd.changed
+
 - name: Configure db servers
   hosts: db_servers
   become: true
@@ -71,3 +96,23 @@
       ansible.builtin.package:
         name: samba
         state: latest
+
+- name: Configure workstations
+  hosts: workstations
+  become: true
+  tasks:
+
+    - name: Install unzip package
+      tags: unzip
+      ansible.builtin.package:
+        name: unzip
+        state: latest
+
+    - name: Install terraform
+      ansible.builtin.unarchive:
+        src: https://releases.hashicorp.com/terraform/1.12.2/terraform_1.12.2_linux_amd64.zip
+        dest: /usr/local/bin
+        remote_src: true
+        mode: '0755'
+        owner: root
+        group: root
