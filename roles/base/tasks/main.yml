@@ -1,0 +1,9 @@
+- name: Generate sshd_config file from template
+  tags: ssh
+  ansible.builtin.template:
+    src: "{{ ssh_template_file }}"
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart_sshd

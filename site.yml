@@ -19,6 +19,12 @@
       changed_when: false
       when: ansible_distribution == "Ubuntu"
 
+- name: Base
+  hosts: all
+  become: true
+  roles:
+    - base
+
 - name: Configure web services
   hosts: web_servers
   become: true
