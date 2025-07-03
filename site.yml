@@ -5,114 +5,39 @@
   become: true
   pre_tasks:
 
-    - name: Install updates (RedHat)
+    - name: Update repository index (RedHat)
       tags: always
       ansible.builtin.dnf:
-        update_only: true
         update_cache: true
+      changed_when: false
       when: ansible_distribution == "RedHat"
-
-    - name: Install updated (Ubuntu)
+  
+    - name: Update repository index (Ubuntu)
       tags: always
       ansible.builtin.apt:
-        upgrade: dist
         update_cache: true
+      changed_when: false
       when: ansible_distribution == "Ubuntu"
 
 - name: Configure web services
   hosts: web_servers
   become: true
-  tasks:
-
-    - name: Install apache and php (Ubuntu)
-      tags: apache,apache2,ubuntu
-      ansible.builtin.apt:
-        name:
-          - apache2
-          - libapache2-mod-php
-        state: latest
-      when: ansible_distribution == "Ubuntu"
-
-    - name: Install apache and php (RedHat)
-      tags: apache,httpd,redhat
-      ansible.builtin.dnf:
-        name:
-          - httpd
-          - php
-        state: latest
-      when: ansible_distribution == "RedHat"
-
-    - name: Add homepage index.html
-      tags: apache,apache2,httpd
-      ansible.builtin.copy:
-        src: home_site.html
-        dest: /var/www/html/index.html
-        owner: root
-        group: root
-        mode: '0644'
-
-    - name: Change e-mail address for admin # tylko na potrzeby testowania restartu usług
-      tags: apache,httpd,redhat
-      ansible.builtin.lineinfile:
-        path: /etc/httpd/conf/httpd.conf
-        regexp: '^ServerAdmin'
-        line: 'ServerAdmin somebody@somewhere.net'
-      when: ansible_distribution == "RedHat"
-      register: httpd
-
-    - name: Restart httpd service
-      tags: apache,httpd,redhat
-      ansible.builtin.systemd:
-        name: httpd
-        state: restarted
-      when: httpd.changed
-
+  roles:
+    - web_servers
 - name: Configure db servers
   hosts: db_servers
   become: true
-  tasks:
-
-    - name: Install mariadb package (RedHat)
-      tags: mariadb,redhat
-      ansible.builtin.dnf:
-        name: mariadb
-        state: latest
-      when: ansible_distribution == "RedHat"
-
-    - name: Install mariadb package (Ubuntu)
-      tags: mariadb,ubuntu
-      ansible.builtin.apt:
-        name: mariadb-server
-        state: latest
-      when: ansible_distribution == "Ubuntu"
+  roles:
+    - db_servers
 
 - name: Configure file servers
   hosts: file_servers
   become: true
-  tasks:
-
-    - name: Install samba package
-      tags: samba
-      ansible.builtin.package:
-        name: samba
-        state: latest
+  roles:
+    - file_servers
 
 - name: Configure workstations
   hosts: workstations
   become: true
-  tasks:
-
-    - name: Install unzip package
-      tags: unzip
-      ansible.builtin.package:
-        name: unzip
-        state: latest
-
-    - name: Install terraform
-      ansible.builtin.unarchive:
-        src: https://releases.hashicorp.com/terraform/1.12.2/terraform_1.12.2_linux_amd64.zip
-        dest: /usr/local/bin
-        remote_src: true
-        mode: '0755'
-        owner: root
-        group: root
+  roles:
+    - workstations
