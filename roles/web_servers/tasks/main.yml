@@ -1,20 +1,17 @@
-- name: Install apache and php (Ubuntu)
-  tags: apache,apache2,ubuntu
-  ansible.builtin.apt:
+- name: Install apache and php
+  tags: apache,apache2
+  ansible.builtin.package:
     name:
-      - apache2
-      - libapache2-mod-php
+      - "{{ apache_package_name }}"
+      - "{{ php_package_name }}"
     state: latest
-  when: ansible_distribution == "Ubuntu"
 
-- name: Install apache and php (RedHat)
-  tags: apache,httpd,redhat
-  ansible.builtin.dnf:
-    name:
-      - httpd
-      - php
-    state: latest
-  when: ansible_distribution == "RedHat"
+- name: Start and enable apache service
+  tags: apache,apache2,httpd
+  ansible.builtin.systemd:
+    name: "{{ apache_service_name }}"
+    state: started
+    enabled: true
 
 - name: Add homepage index.html
   tags: apache,apache2,httpd
@@ -30,13 +27,7 @@
   ansible.builtin.lineinfile:
     path: /etc/httpd/conf/httpd.conf
     regexp: '^ServerAdmin'
-    line: 'ServerAdmin somebody@somewhere.net'
+    line: 'ServerAdmin some@body.com'
   when: ansible_distribution == "RedHat"
-  register: httpd
-
-- name: Restart httpd service
-  tags: apache,httpd,redhat
-  ansible.builtin.systemd:
-    name: httpd
-    state: restarted
-  when: httpd.changed
+  notify:
+    - Restart_apache
